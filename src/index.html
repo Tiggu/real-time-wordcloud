@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Socket.IO chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: #ccc;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 60%;
+            margin-right: 1%;
+            margin-left: 20%;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        form button {
+            width: 9%;
+            background: #9d1e67;
+            border: none;
+            padding: 10px;
+            color: #fff;
+        }
+
+        #messages {
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="messages"></div>
+    <form action="">
+        <input id="m" autocomplete="off" placeholder="How motivated are you?" /><button>Send</button>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/plugins/wordCloud.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+        
+am4core.useTheme(am4themes_animated);
+
+var chart = am4core.create("messages", am4plugins_wordCloud.WordCloud);
+var series = chart.series.push(new am4plugins_wordCloud.WordCloudSeries());
+
+series.accuracy = 4;
+series.step = 15;
+series.rotationThreshold = 0.7;
+series.maxCount = 200;
+series.minWordLength = 2;
+series.fontFamily = "Helvetica";
+series.maxFontSize = am4core.percent(30);
+series.heatRules.push({
+ "target": series.labels.template,
+ "property": "fill",
+ "min": am4core.color("#9e1d67"),
+ "max": am4core.color("#66cc33"),
+ "dataField": "value"
+});
+
+series.text = ""; 
+
+        var socket = io();
+        $('form').submit(function () {
+            socket.emit('chat message', $('#m').val());
+            $('#m').val('');
+            return false;
+        });
+        let lastWords = "";
+        socket.on('words', function (words) {
+            console.log('received words')
+            series.text = words
+        });
+    </script>
+</body>
+
+</html>
